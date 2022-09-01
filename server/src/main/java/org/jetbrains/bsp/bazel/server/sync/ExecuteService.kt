@@ -39,10 +39,14 @@ class ExecuteService(
         if (result.isNotSuccess) {
             return TestResult(result.statusCode)
         }
+        val targetsSpec = TargetsSpec(targets, emptyList())
         result = bazelRunner.commandBuilder().test().withTargets(
-            targets.map(BspMappings::toBspUri)
-        ).withArguments(params.arguments).executeBazelBesCommand(params.originId).waitAndGetResult()
-        return TestResult(result.statusCode).apply { originId = originId }
+            targetsSpec
+        ).withArguments(params.arguments).withFlags(listOf("--test_output=all", "--remote_print_execution_messages=all")).executeBazelBesCommand(params.originId).waitAndGetResult()
+        return TestResult(result.statusCode).apply {
+            originId = originId
+            data = result
+        }
     }
 
     fun run(params: RunParams): RunResult {
